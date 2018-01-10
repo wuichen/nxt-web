@@ -7,6 +7,7 @@ import Button from '../../components/uielements/button';
 import authAction from '../../redux/auth/actions';
 import IntlMessages from '../../components/utility/intlMessages';
 import SignInStyleWrapper from './signin.style';
+import SignInForm from '../../components/signInForm/signInForm';
 
 const { login } = authAction;
 
@@ -14,19 +15,24 @@ class SignIn extends Component {
   state = {
     redirectToReferrer: false,
   };
-  componentWillReceiveProps(nextProps) {
-    if (
-      this.props.isLoggedIn !== nextProps.isLoggedIn &&
-      nextProps.isLoggedIn === true
-    ) {
-      this.setState({ redirectToReferrer: true });
-    }
+  // componentWillReceiveProps(nextProps) {
+  //   if (
+  //     this.props.isLoggedIn !== nextProps.isLoggedIn &&
+  //     nextProps.isLoggedIn === true
+  //   ) {
+  //     this.setState({ redirectToReferrer: true });
+  //   }
+  // }
+  // handleLogin = () => {
+  //   const { login } = this.props;
+  //   login();
+  //   this.props.history.push('/dashboard');
+  // };
+
+  handleLogin = (loginCredentials) => {
+    this.props.login(loginCredentials)
   }
-  handleLogin = () => {
-    const { login } = this.props;
-    login();
-    this.props.history.push('/dashboard');
-  };
+
   render() {
     const from = { pathname: '/dashboard' };
     const { redirectToReferrer } = this.state;
@@ -39,50 +45,9 @@ class SignIn extends Component {
         <div className="isoLoginContentWrapper">
           <div className="isoLoginContent">
             <div className="isoLogoWrapper">
-              <Link to="/dashboard">
-                <IntlMessages id="page.signInTitle" />
-              </Link>
+              NXT-POS
             </div>
-
-            <div className="isoSignInForm">
-              <div className="isoInputWrapper">
-                <Input size="large" placeholder="Username" />
-              </div>
-
-              <div className="isoInputWrapper">
-                <Input size="large" type="password" placeholder="Password" />
-              </div>
-
-              <div className="isoInputWrapper isoLeftRightComponent">
-                <Checkbox>
-                  <IntlMessages id="page.signInRememberMe" />
-                </Checkbox>
-                <Button type="primary" onClick={this.handleLogin}>
-                  <IntlMessages id="page.signInButton" />
-                </Button>
-              </div>
-
-              <p className="isoHelperText">
-                <IntlMessages id="page.signInPreview" />
-              </p>
-
-              <div className="isoInputWrapper isoOtherLogin">
-                <Button onClick={this.handleLogin} type="primary btnFacebook">
-                  <IntlMessages id="page.signInFacebook" />
-                </Button>
-                <Button onClick={this.handleLogin} type="primary btnGooglePlus">
-                  <IntlMessages id="page.signInGooglePlus" />
-                </Button>
-              </div>
-              <div className="isoCenterComponent isoHelperWrapper">
-                <Link to="" className="isoForgotPass">
-                  <IntlMessages id="page.signInForgotPass" />
-                </Link>
-                <Link to="">
-                  <IntlMessages id="page.signInCreateAccount" />
-                </Link>
-              </div>
-            </div>
+            <SignInForm login={this.handleLogin} />
           </div>
         </div>
       </SignInStyleWrapper>
