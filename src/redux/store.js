@@ -5,11 +5,12 @@ import thunk from 'redux-thunk';
 import createSagaMiddleware from 'redux-saga';
 import reducers from '../redux/reducers';
 import rootSaga from '../redux/sagas';
+import logger from 'redux-logger';
 
 const history = createHistory();
 const sagaMiddleware = createSagaMiddleware();
 const routeMiddleware = routerMiddleware(history);
-const middlewares = [thunk, sagaMiddleware, routeMiddleware];
+const middlewares = [thunk, sagaMiddleware, routeMiddleware, logger];
 
 const store = createStore(
   combineReducers({

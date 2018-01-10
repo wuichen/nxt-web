@@ -3,13 +3,20 @@ const authActons = {
   LOGOUT: 'LOGOUT',
   LOGIN_SUCCESS: 'LOGIN_SUCCESS',
   LOGIN_ERROR: 'LOGIN_ERROR',
+  loginSuccess: (userResult) => ({
+    type: authActons.LOGIN_SUCCESS,
+    payload: userResult
+  }), 
   login: (loginCredentials) => ({
     type: authActons.LOGIN_REQUEST,
-    email: loginCredentials.email,
-    password: loginCredentials.password
+    payload: loginCredentials
   }),
   logout: () => ({
     type: authActons.LOGOUT,
   }),
+  loginError: (userResult) => ({
+    type: authActons.LOGIN_ERROR,
+    payload: userResult
+  })
 };
 export default authActons;

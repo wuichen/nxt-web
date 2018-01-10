@@ -1,4 +1,4 @@
-import { all, takeEvery, put, fork, call } from 'redux-saga/effects';
+import { all, take, takeEvery, put, fork, call } from 'redux-saga/effects';
 import { push } from 'react-router-redux';
 import { clearToken } from '../../helpers/utility';
 import actions from './actions';
@@ -11,8 +11,7 @@ const poolData = {
 
 const userPool = new AWSCognito.CognitoUserPool(poolData);
 
-
-function cognitoSignIn(params) {
+const cognitoSignIn = (params) =>
   new Promise((resolve, reject) => {
     const { email, password } = params;
     const authenticationDetails = new AWSCognito.AuthenticationDetails({
@@ -35,48 +34,60 @@ function cognitoSignIn(params) {
         });
       },
       onFailure: err => {
-        console.log(err)
         resolve({ payload: null, err });
       }
     });
   });
-}
   
 
 export function* loginRequest() {
-  // yield takeEvery('LOGIN_REQUEST', function*() {
-  //   if (fakeApiCall) {
-  //     yield put({
-  //       type: actions.LOGIN_SUCCESS,
-  //       token: 'secret token',
-  //       profile: 'Profile'
-  //     });
-  //   } else {
-  //     yield put({ type: actions.LOGIN_ERROR });
-  //   }
-  // });
+  yield takeEvery(actions.LOGIN_REQUEST, function*(action) {
+    const { email, password } = action.payload;
 
-  yield takeEvery('LOGIN_REQUEST', function*(loginCredentials) {
-    const {email, password} = loginCredentials;
+    if (email && password) {
+      const { payload, err } = yield call(cognitoSignIn, action.payload);
+      if (!payload && err) {
+        yield put(actions.loginError(`${err.statusCode}: ${err.message}`));
+        return;
+      }
 
-    if(email && password) {
-      const result = yield call(cognitoSignIn, loginCredentials);
-      console.log(result)
+      yield put(actions.loginSuccess(payload));
+      return;
     }
-
+    yield put(actions.loginError('Please set email and password'));
 
   });
 }
 
-export function* loginSuccess() {
-  yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
-    yield localStorage.setItem('id_token', payload.token);
-  });
-}
+// export function* loginRequest() {
+//   while (true) {
+//     const action = yield take(actions.LOGIN_REQUEST);
+//     const { email, password } = action.payload;
 
-export function* loginError() {
-  yield takeEvery(actions.LOGIN_ERROR, function*() {});
-}
+//     if (email && password) {
+//       const { payload, err } = yield call(cognitoSignIn, action.payload);
+//       console.log(payload)
+//       if (!payload && err) {
+//         yield put(actions.loginError(`${err.statusCode}: ${err.message}`));
+//         continue;
+//       }
+
+//       yield put(actions.loginSuccess(payload));
+//       continue;
+//     }
+//     yield put(actions.loginError('Please set email and password'));
+//   }
+// }
+
+// export function* loginSuccess() {
+//   yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
+//     yield localStorage.setItem('id_token', payload.token);
+//   });
+// }
+
+// export function* loginError() {
+//   yield takeEvery(actions.LOGIN_ERROR, function*() {});
+// }
 
 export function* logout() {
   yield takeEvery(actions.LOGOUT, function*() {
@@ -87,8 +98,8 @@ export function* logout() {
 export default function* rootSaga() {
   yield all([
     fork(loginRequest),
-    fork(loginSuccess),
-    fork(loginError),
+    // fork(loginSuccess),
+    // fork(loginError),
     fork(logout)
   ]);
 }
