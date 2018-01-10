@@ -50,34 +50,15 @@ export function* loginRequest() {
         yield put(actions.loginError(`${err.statusCode}: ${err.message}`));
         return;
       }
-
       yield put(actions.loginSuccess(payload));
+      yield put(push('/dashboard'));
+
       return;
     }
     yield put(actions.loginError('Please set email and password'));
 
   });
 }
-
-// export function* loginRequest() {
-//   while (true) {
-//     const action = yield take(actions.LOGIN_REQUEST);
-//     const { email, password } = action.payload;
-
-//     if (email && password) {
-//       const { payload, err } = yield call(cognitoSignIn, action.payload);
-//       console.log(payload)
-//       if (!payload && err) {
-//         yield put(actions.loginError(`${err.statusCode}: ${err.message}`));
-//         continue;
-//       }
-
-//       yield put(actions.loginSuccess(payload));
-//       continue;
-//     }
-//     yield put(actions.loginError('Please set email and password'));
-//   }
-// }
 
 // export function* loginSuccess() {
 //   yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
@@ -94,6 +75,68 @@ export function* logout() {
     clearToken();
     yield put(push('/'));
   });
+}
+
+// const getSession = cognitoUser =>
+//   new Promise((resolve, reject) => {
+//     console.log('jere')
+//     cognitoUser.getSession((err, result) => {
+//       if (result) {
+//         console.log(result)
+//         cognitoUser.getUserAttributes((err, attrs) => {
+//           if (err) {
+//             resolve({ payload: null, err });
+//           } else {
+//             const payload = {};
+//             payload.user = {};
+//             attrs.forEach(attr => (payload.user[attr.Name] = attr.Value));
+//             payload.jwt = result.getIdToken().getJwtToken();
+//             resolve({ payload });
+//           }
+//         });
+//       } else {
+//         console.log(err)
+//         resolve({ payload: null, err });
+//       }
+//     });
+//   });
+
+
+// const getSession = cognitoUser =>
+//   new Promise((resolve, reject) => {
+//     cognitoUser.getSession((err, result) => {
+//       if (result) {
+//         cognitoUser.getUserAttributes((err, attrs) => {
+//           if (err) {
+//             resolve({ payload: null, err });
+//           } else {
+//             const payload = {};
+//             payload.user = {};
+//             attrs.forEach(attr => (payload.user[attr.Name] = attr.Value));
+//             payload.jwt = result.getIdToken().getJwtToken();
+//             resolve({ payload });
+//           }
+//         });
+//       } else {
+//         resolve({ payload: null, err });
+//       }
+//     });
+//   });
+
+
+
+export function getCurrentUser() {
+  var cognitoUser = userPool.getCurrentUser();
+  if (cognitoUser != null) {
+      cognitoUser.getSession(function(err, session) {
+          if (err) {
+              alert(err);
+              return;
+          }
+          console.log('session validity: ' + session);
+      });
+  }
+  
 }
 export default function* rootSaga() {
   yield all([
