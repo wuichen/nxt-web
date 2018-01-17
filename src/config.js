@@ -1,5 +1,18 @@
 export default {
-  apiUrl: 'http://yoursite.com/api/',
+  MAX_ATTACHMENT_SIZE: 5000000,
+  s3: {
+    BUCKET: "notes-app-uploads"
+  },
+  apiGateway: {
+    REGION: "ap-northeast-1",
+    URL: "https://qlf7xi9935.execute-api.ap-northeast-1.amazonaws.com/v1"
+  },
+  cognito: {
+    REGION: "ap-northeast-1",
+    USER_POOL_ID: "ap-northeast-1_7U7LGfa7E",
+    APP_CLIENT_ID: "vguqhcpustlri2c0arbnk0jta",
+    IDENTITY_POOL_ID: "ap-northeast-1:41d28826-cb49-4d1f-8150-0270659b571e"
+  }
 };
 
 const siteConfig = {
@@ -19,3 +32,6 @@ export {
   language,
   themeConfig
 };
+
+
+

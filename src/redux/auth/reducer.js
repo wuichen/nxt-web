@@ -1,13 +1,13 @@
 import { Map } from 'immutable';
 // import { getToken } from '../../helpers/utility';
 import actions from './actions';
-import {getCurrentUser} from './saga';
+// import {getCurrentUser} from './saga';
 
-const currentUser = getCurrentUser()
-
+// const currentUser = getCurrentUser().resolve()
+// console.log(currentUser)
 const initState = new Map({
     isLoggedIn: false,
-    user: undefined,
+    user: null,
     isFetching: false,
     error: null
 });

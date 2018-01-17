@@ -8,8 +8,10 @@ import authAction from '../../redux/auth/actions';
 import IntlMessages from '../../components/utility/intlMessages';
 import SignInStyleWrapper from './signin.style';
 import SignInForm from '../../components/signInForm/signInForm';
+import SignUpForm from '../../components/signUpForm/signUpForm';
 
-const { login } = authAction;
+
+const { login, signUp } = authAction;
 
 class SignIn extends Component {
   state = {
@@ -33,6 +35,10 @@ class SignIn extends Component {
     this.props.login(loginCredentials)
   }
 
+  handleSignUp = (signUpCredentials) => {
+    this.props.signUp(signUpCredentials)
+  }
+
   render() {
     const from = { pathname: '/dashboard' };
     const { redirectToReferrer } = this.state;
@@ -45,9 +51,16 @@ class SignIn extends Component {
         <div className="isoLoginContentWrapper">
           <div className="isoLoginContent">
             <div className="isoLogoWrapper">
-              NXT-POS
+              NXT-POS Sign In test
             </div>
             <SignInForm login={this.handleLogin} />
+
+            <hr />
+            <div className="isoLogoWrapper">
+              NXT-POS Sign Up test
+            </div>
+            <SignUpForm signUp={this.handleSignUp} />
+
           </div>
         </div>
       </SignInStyleWrapper>
@@ -57,7 +70,7 @@ class SignIn extends Component {
 
 export default connect(
   state => ({
-    isLoggedIn: state.Auth.get('idToken') !== null ? true : false,
+    isLoggedIn: !!state.Auth.get("user")
   }),
-  { login }
+  { login, signUp }
 )(SignIn);

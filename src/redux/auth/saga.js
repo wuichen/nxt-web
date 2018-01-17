@@ -3,6 +3,9 @@ import { push } from 'react-router-redux';
 import { clearToken } from '../../helpers/utility';
 import actions from './actions';
 import * as AWSCognito from 'amazon-cognito-identity-js';
+import { invokeApig } from '../../helpers/awsLib';
+import jwt_decode from 'jwt-decode';
+import AWS from 'aws-sdk';
 
 const poolData = {
   UserPoolId: 'ap-northeast-1_7U7LGfa7E',
@@ -10,6 +13,7 @@ const poolData = {
 };
 
 const userPool = new AWSCognito.CognitoUserPool(poolData);
+
 
 const cognitoSignIn = (params) =>
   new Promise((resolve, reject) => {
@@ -24,6 +28,20 @@ const cognitoSignIn = (params) =>
       Pool: userPool
     });
 
+
+    // const groupParams = {
+    //   UserPoolId: poolData.UserPoolId, /* required */
+    //   Username: 'ichenwu01@gmail.com', /* required */
+    // };
+
+    // const CognitoIdentityServiceProvider = new AWS.CognitoIdentityServiceProvider();
+    // CognitoIdentityServiceProvider.adminListGroupsForUser(groupParams, function (err, data) {
+    //   if (err) console.log(err, err.stack); // an error occurred
+    //   else     console.log(data);           // successful response
+    // });
+
+
+
     cognitoUser.authenticateUser(authenticationDetails, {
       onSuccess: result => {
         cognitoUser.getUserAttributes((err, attrs) => {
@@ -32,13 +50,23 @@ const cognitoSignIn = (params) =>
           payload.jwt = result.getIdToken().getJwtToken();
           resolve({ payload });
         });
+
+        cognitoUser.getSession((err, session) => {
+          if (err) {
+             alert(err);
+              return;
+          }
+          console.log('session validity: ' + session.isValid());
+          const sessionIdInfo = jwt_decode(session.getIdToken().jwtToken);
+          console.log(sessionIdInfo);
+        });
+
       },
       onFailure: err => {
         resolve({ payload: null, err });
       }
     });
   });
-  
 
 export function* loginRequest() {
   yield takeEvery(actions.LOGIN_REQUEST, function*(action) {
@@ -60,6 +88,52 @@ export function* loginRequest() {
   });
 }
 
+export function* signUpRequest() {
+  yield takeEvery(actions.SIGNUP_REQUEST, function*(action) {
+    // const signUpEmail = {
+    //     Name : 'email',
+    //     Value : action.payload.signUp_email
+    // };
+    const attributeList = []
+    const familyName = {
+        Name : 'family_name',
+        Value : action.payload.family_name
+    };
+
+    const givenName = {
+        Name : 'given_name',
+        Value : action.payload.given_name
+    };
+
+    const promo = {
+      Name: 'custom:referral',
+      Value: action.payload.promo
+    }
+
+    const attributeFamilyName = new AWSCognito.CognitoUserAttribute(familyName);
+    const attributeGivenName = new AWSCognito.CognitoUserAttribute(givenName);
+    const attributePromo = new AWSCognito.CognitoUserAttribute(promo);
+
+    attributeList.push(attributeFamilyName);
+    attributeList.push(attributeGivenName);
+    attributeList.push(attributePromo);
+    console.log(action)
+    userPool.signUp(action.payload.signUp_email, action.payload.signUp_password, attributeList, null, function(err, result){
+        if (err) {
+            alert(err);
+            return;
+        }
+
+        if (result.user) {
+          const cognitoUser = result.user;
+          console.log(result)
+          console.log('user name is ' + cognitoUser.getUsername());
+        }
+        
+    });
+  })
+}
+
 // export function* loginSuccess() {
 //   yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
 //     yield localStorage.setItem('id_token', payload.token);
@@ -77,70 +151,57 @@ export function* logout() {
   });
 }
 
-// const getSession = cognitoUser =>
-//   new Promise((resolve, reject) => {
-//     console.log('jere')
-//     cognitoUser.getSession((err, result) => {
-//       if (result) {
-//         console.log(result)
-//         cognitoUser.getUserAttributes((err, attrs) => {
-//           if (err) {
-//             resolve({ payload: null, err });
-//           } else {
-//             const payload = {};
-//             payload.user = {};
-//             attrs.forEach(attr => (payload.user[attr.Name] = attr.Value));
-//             payload.jwt = result.getIdToken().getJwtToken();
-//             resolve({ payload });
-//           }
-//         });
-//       } else {
-//         console.log(err)
-//         resolve({ payload: null, err });
-//       }
-//     });
-//   });
+const getSession = cognitoUser =>
+  new Promise((resolve, reject) => {
+    cognitoUser.getSession((err, result) => {
+      if (result) {
+        resolve({payload: result})
+      } else {
+        resolve({ payload: null, err });
+      }
+    });
+  });
+
+const getUserAttributes = cognitoUser => 
+  new Promise((resolve, reject) => {
+    cognitoUser.getUserAttributes((err, attrs) => {
+      if (err) {
+        resolve({ payload: null, err });
+      } else {
+        resolve(attrs)
+      }      
+    })
+  });
+
+// export async function getCurrentUser() {
+//   var cognitoUser = userPool.getCurrentUser();
+//   if (cognitoUser != null) {
+//       const session = await getSession(cognitoUser);
+//       const attrs = await getUserAttributes(cognitoUser);
+//       const payload = {};
+//       attrs.forEach(attr => (payload[attr.Name] = attr.Value));
+//       // payload.jwt = attrs.getIdToken().getJwtToken();
+//       // return({ payload });
+//       return(payload)
+//   }
+// }
+
+// export function getCurrentUser() {
+//   const cognitoUser = userPool.getCurrentUser();
 
 
-// const getSession = cognitoUser =>
-//   new Promise((resolve, reject) => {
-//     cognitoUser.getSession((err, result) => {
-//       if (result) {
-//         cognitoUser.getUserAttributes((err, attrs) => {
-//           if (err) {
-//             resolve({ payload: null, err });
-//           } else {
-//             const payload = {};
-//             payload.user = {};
-//             attrs.forEach(attr => (payload.user[attr.Name] = attr.Value));
-//             payload.jwt = result.getIdToken().getJwtToken();
-//             resolve({ payload });
-//           }
-//         });
-//       } else {
-//         resolve({ payload: null, err });
-//       }
-//     });
-//   });
+//   if (cognitoUser != null) {
+//     const session = await getSession(cognitoUser);
+//     getUserAttributes(cognitoUser).then((result) => {
+//       console.log(result)
+//     })
+//   }
+// }
 
-
-
-export function getCurrentUser() {
-  var cognitoUser = userPool.getCurrentUser();
-  if (cognitoUser != null) {
-      cognitoUser.getSession(function(err, session) {
-          if (err) {
-              alert(err);
-              return;
-          }
-          console.log('session validity: ' + session);
-      });
-  }
-  
-}
 export default function* rootSaga() {
   yield all([
     fork(loginRequest),
+    fork(signUpRequest),
     // fork(loginSuccess),
     // fork(loginError),
     fork(logout)
