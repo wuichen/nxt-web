@@ -99,7 +99,7 @@ class Dashboard extends Component {
           </div>
           <div>
           	get an example user &nbsp;
-        	<Button onClick={this.getUser.bind(this)}>get store</Button>
+        	<Button onClick={this.getUser.bind(this)}>get user</Button>
           </div>
         </LayoutContent>
       </LayoutContentWrapper>

@@ -17,21 +17,21 @@ class NormalSignUpForm extends React.Component {
       <Form onSubmit={this.handleSubmit} className="login-form">
         <FormItem>
           {getFieldDecorator('familyName', {
-            rules: [{ required: true, message: 'Please input your last name!' }],
+            rules: [{ required: false, message: 'Please input your last name!' }],
           })(
             <Input placeholder="last name" />
           )}
         </FormItem>
         <FormItem>
           {getFieldDecorator('givenName', {
-            rules: [{ required: true, message: 'Please input your first name!' }],
+            rules: [{ required: false, message: 'Please input your first name!' }],
           })(
             <Input placeholder="first name" />
           )}
         </FormItem>
         <FormItem>
           {getFieldDecorator('signUp_email', {
-            rules: [{ required: true, message: 'Please input your email!' }],
+            rules: [{ required: false, message: 'Please input your email!' }],
           })(
             <Input placeholder="email" />
           )}
@@ -39,7 +39,7 @@ class NormalSignUpForm extends React.Component {
 
         <FormItem>
           {getFieldDecorator('signUp_password', {
-            rules: [{ required: true, message: 'Please input your Password!' }],
+            rules: [{ required: false, message: 'Please input your Password!' }],
           })(
             <Input type="password" placeholder="Password" />
           )}
@@ -47,7 +47,7 @@ class NormalSignUpForm extends React.Component {
 
         <FormItem>
           {getFieldDecorator('promo', {
-            rules: [{ required: true, message: 'Please input your Promo!' }],
+            rules: [{ required: false, message: 'Please input your Promo!' }],
           })(
             <Input placeholder="promo" />
           )}

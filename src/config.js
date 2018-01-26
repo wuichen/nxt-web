@@ -5,7 +5,7 @@ export default {
   },
   apiGateway: {
     REGION: "ap-northeast-1",
-    URL: "https://qlf7xi9935.execute-api.ap-northeast-1.amazonaws.com/v1"
+    URL: ".execute-api.ap-northeast-1.amazonaws.com/v1"
   },
   cognito: {
     REGION: "ap-northeast-1",

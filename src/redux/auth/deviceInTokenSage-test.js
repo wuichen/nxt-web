@@ -4,8 +4,8 @@ import { clearToken } from '../../helpers/utility';
 import actions from './actions';
 import * as AWSCognito from 'amazon-cognito-identity-js';
 import { invokeApig } from '../../helpers/awsLib';
-import AWS from "aws-sdk";
-
+import jwt_decode from 'jwt-decode';
+import AWS from 'aws-sdk';
 
 const poolData = {
   UserPoolId: 'ap-northeast-1_7U7LGfa7E',
@@ -13,6 +13,70 @@ const poolData = {
 };
 
 const userPool = new AWSCognito.CognitoUserPool(poolData);
+
+let cognitoUser = null;
+
+const loginPart1Authenticate = (params) => 
+  new Promise((resolve, reject) => {
+    const { email, password } = params;
+    const authenticationDetails = new AWSCognito.AuthenticationDetails({
+      Username: email,
+      Password: password
+    });
+    cognitoUser = new AWSCognito.CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+
+    cognitoUser.authenticateUser(authenticationDetails, {
+      onSuccess: result => {
+        resolve({result})
+      },
+      onFailure: err => {
+        resolve({ payload: null, err });
+      }
+    });
+  })
+
+const loginPart2GetDevice = () => 
+  new Promise((resolve, reject) => {
+    cognitoUser.getDevice({
+        onSuccess: result => {
+            resolve({result})
+        },
+        onFailure: err => {
+          resolve({ payload: null, err });
+        }
+    });
+  })
+
+const loginPart3UpdateDevice = (device) => 
+  new Promise((resolve, reject) => {
+    let attributeList = [];
+    let attribute = {
+        Name : 'custom:device',
+        Value : device
+    };
+    let attributeDevice = new AWSCognito.CognitoUserAttribute(attribute);
+    attributeList.push(attributeDevice);
+
+    cognitoUser.updateAttributes(attributeList, (err, result) => {
+        if (err) {
+            resolve({ payload: null, err });
+        }
+        resolve({result})
+    });
+  })
+
+const loginPart4GetSession = () => 
+  new Promise((resolve, reject) => {
+    cognitoUser.getSession((err, result) => {
+      if (err) {
+            resolve({ payload: null, err });
+      }
+      resolve({result})
+    })
+  })
 
 
 const cognitoSignIn = (params) =>
@@ -23,7 +87,7 @@ const cognitoSignIn = (params) =>
       Password: password
     });
 
-    const cognitoUser = new AWSCognito.CognitoUser({
+    cognitoUser = new AWSCognito.CognitoUser({
       Username: email,
       Pool: userPool
     });
@@ -32,10 +96,20 @@ const cognitoSignIn = (params) =>
       onSuccess: result => {
         cognitoUser.getUserAttributes((err, attrs) => {
           const payload = {};
-          attrs.forEach(attr => (payload[attr.Name] = attr.Value));
+          attrs.forEach(attr => (payload[attr.getName()] = attr.getValue()));
           payload.jwt = result.getIdToken().getJwtToken();
           resolve({ payload });
         });
+
+        // cognitoUser.getSession((err, session) => {
+        //   if (err) {
+        //      alert(err);
+        //       return;
+        //   }
+        //   console.log('session validity: ' + session.isValid());
+        //   const sessionIdInfo = jwt_decode(session.getIdToken().jwtToken);
+        //   console.log(sessionIdInfo);
+        // });
 
       },
       onFailure: err => {
@@ -54,6 +128,17 @@ export function* loginRequest() {
         yield put(actions.loginError(`${err.statusCode}: ${err.message}`));
         return;
       }
+
+      const part1 = yield call(loginPart1Authenticate, action.payload)
+      const part2 = yield call(loginPart2GetDevice)
+      const part3 = yield call(loginPart3UpdateDevice, part2.result.Device.DeviceKey)
+      const part4 = yield call(loginPart4GetSession)
+
+      console.log(part1, part2, part3, part4)
+
+
+
+
       yield put(actions.loginSuccess(payload));
       yield put(push('/dashboard'));
 
@@ -73,14 +158,13 @@ export function* signUpRequest() {
     const attributeList = []
     const familyName = {
         Name : 'family_name',
-        Value : action.payload.family_name
+        Value : action.payload.familyName
     };
 
     const givenName = {
         Name : 'given_name',
-        Value : action.payload.given_name
+        Value : action.payload.givenName
     };
-
     const promo = {
       Name: 'custom:referral',
       Value: action.payload.promo
@@ -101,10 +185,9 @@ export function* signUpRequest() {
         }
 
         if (result.user) {
-          const cognitoUser = result.user;
+          cognitoUser = result.user;
           console.log(result)
           console.log('user name is ' + cognitoUser.getUsername());
-          
         }
         
     });

@@ -8,19 +8,20 @@ export async function invokeApig({
   method = "GET",
   headers = {},
   queryParams = {},
-  body
+  body,
+  serviceId
 }) {
   if (!await authUser()) {
     throw new Error("User is not logged in");
   }
-
+console.log(AWS.config.credentials)
   const signedRequest = sigV4Client
     .newClient({
       accessKey: AWS.config.credentials.accessKeyId,
       secretKey: AWS.config.credentials.secretAccessKey,
       sessionToken: AWS.config.credentials.sessionToken,
       region: config.apiGateway.REGION,
-      endpoint: config.apiGateway.URL
+      endpoint: "https://" + serviceId + config.apiGateway.URL
     })
     .signRequest({
       method,
