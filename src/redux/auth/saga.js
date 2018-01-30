@@ -111,11 +111,11 @@ export function* signUpRequest() {
   })
 }
 
-// export function* loginSuccess() {
-//   yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
-//     yield localStorage.setItem('id_token', payload.token);
-//   });
-// }
+export function* loginSuccess() {
+  yield takeEvery(actions.LOGIN_SUCCESS, function*(payload) {
+    yield localStorage.setItem('id_token', payload.jwt);
+  });
+}
 
 // export function* loginError() {
 //   yield takeEvery(actions.LOGIN_ERROR, function*() {});

@@ -5,7 +5,7 @@ import { connect } from 'react-redux';
 import authAction from '../redux/auth/actions';
 import { invokeApig } from '../helpers/awsLib';
 import { Form, Icon, Input, Button, Checkbox } from 'antd';
-
+import axios from 'axios';
 
 const { setup } = authAction;
 
@@ -71,17 +71,44 @@ class Dashboard extends Component {
   }
 
   async getUser() {
-  	try {
-  		const userResult = await invokeApig({
-	  		path: "/users/ffffffffssss",
-	  		serviceId: 's8rni1l6rb'
-		})
+    const token = localStorage.getItem('id_token')
+    const sub = this.props.user.get('sub')
+    try {
+      const userResult = await axios({
+        method: 'GET',
+        url: 'https://95lxfd1va7.execute-api.ap-northeast-1.amazonaws.com/v1/users/ffffffffssss',
+        params: {
+          sub: sub
+        },
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      })
+      console.log(userResult)
+    } catch (e) {
+      console.log(e)
+    }
+  //   const sub = this.props.user.get('sub')
 
-		console.log(userResult)
-  	} catch (e) {
-  		console.log(e)
-  	}
+  // 	try {
+  // 		const userResult = await invokeApig({
+	 //  		path: "/users/ffffffffssss",
+	 //  		serviceId: '95lxfd1va7',
+  //       queryParams: {
+  //         sub: sub
+  //       }
+		// })
+
+		// console.log(userResult)
+  // 	} catch (e) {
+  // 		console.log(e)
+  // 	}
   }
+
+  // componentDidMount() {
+  //   const user = this.props.user.toJSON()
+  //   console.log(user)
+  // }
 
   render() {
     return (
